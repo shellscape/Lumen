@@ -1,0 +1,31 @@
+
+- App
+	- Init FileSystemWatcher for new/updated plugins.
+	- Load plugins
+		- Process require directives.
+		- Load script into context, execute create()
+	: Input 
+		- Show windows search results
+		- Pass terms to all plugins, allow them to return results. 
+			- Display any results
+		- Attempt to match input to registered command
+		- If match(es) found
+			- Find closest match
+				- display as auto-complete
+				- display other possible matches
+			: Execute
+				-tell plugin to execute it. 
+
+- Plugins
+	- Register commands with the app
+	- Matching commands are passed to the plugin
+	
+Plugin Structure
+{
+	register: (),
+	results: (term){ // shows results for a plugin. eg. dictionary, calculator
+		return [...]; // results
+		return null; // no results
+	}, 
+	execute: (name, params) // executes a command
+}

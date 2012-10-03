@@ -1,0 +1,11 @@
+[DllImport("user32.dll")]
+static extern bool HideCaret(IntPtr hWnd);
+
+http://stackoverflow.com/questions/10587715/multi-color-textbox-c-sharp
+
+http://stackoverflow.com/questions/8793445/windows-7-style-dropshadow-in-borderless-form
+
+https://github.com/jcubic/jquery.terminal
+https://github.com/jcubic/jquery.terminal/blob/master/js/jquery.terminal-src.js#L939
+
+add history

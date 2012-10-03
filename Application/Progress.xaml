@@ -1,0 +1,136 @@
+﻿<Window x:Class="Lumen.Progress"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  Title="Progress" Height="100" Width="660"
+  WindowStyle="None" 
+  AllowsTransparency="True"
+  Background="Transparent"
+  Topmost="True">
+
+	<Window.Resources>
+
+		<Style x:Key="{x:Type ProgressBar}" TargetType="{x:Type ProgressBar}">
+			<Setter Property="MinHeight" Value="8" />
+			<Setter Property="Foreground" Value="#fff" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="{x:Type ProgressBar}">
+
+						<ControlTemplate.Triggers>
+							<EventTrigger RoutedEvent="Loaded" SourceName="AnimationContainer">
+								<BeginStoryboard>
+									<Storyboard RepeatBehavior="Forever">
+										<DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)" Storyboard.TargetName="ProgressAnimationEllipse01">
+											<SplineDoubleKeyFrame KeyTime="0" Value="-400" />
+											<SplineDoubleKeyFrame KeyTime="0:0:0.8" Value="-400" />
+											<SplineDoubleKeyFrame KeyTime="0:0:1.4" Value="-10" KeySpline="0,0,0,1" />
+											<SplineDoubleKeyFrame KeyTime="0:0:2.2" Value="10" />
+											<SplineDoubleKeyFrame KeyTime="0:0:2.8" Value="400" KeySpline="1,0,1,1" />
+										</DoubleAnimationUsingKeyFrames>
+										<DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)" Storyboard.TargetName="ProgressAnimationEllipse02">
+											<SplineDoubleKeyFrame KeyTime="0" Value="-400" />
+											<SplineDoubleKeyFrame KeyTime="0:0:0.6" Value="-400" />
+											<SplineDoubleKeyFrame KeyTime="0:0:1.2" Value="-10" KeySpline="0,0,0,1" />
+											<SplineDoubleKeyFrame KeyTime="0:0:2" Value="10" />
+											<SplineDoubleKeyFrame KeyTime="0:0:2.6" Value="400" KeySpline="1,0,1,1" />
+										</DoubleAnimationUsingKeyFrames>
+										<DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)" Storyboard.TargetName="ProgressAnimationEllipse03">
+											<SplineDoubleKeyFrame KeyTime="0" Value="-400" />
+											<SplineDoubleKeyFrame KeyTime="0:0:0.4" Value="-400" />
+											<SplineDoubleKeyFrame KeyTime="0:0:1" Value="-10" KeySpline="0,0,0,1" />
+											<SplineDoubleKeyFrame KeyTime="0:0:1.8" Value="10" />
+											<SplineDoubleKeyFrame KeyTime="0:0:2.4" Value="400" KeySpline="1,0,1,1" />
+										</DoubleAnimationUsingKeyFrames>
+										<DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)" Storyboard.TargetName="ProgressAnimationEllipse04">
+											<SplineDoubleKeyFrame KeyTime="0" Value="-400" />
+											<SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="-400" />
+											<SplineDoubleKeyFrame KeyTime="0:0:0.8" Value="-10" KeySpline="0,0,0,1" />
+											<SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="10" />
+											<SplineDoubleKeyFrame KeyTime="0:0:2.2" Value="400" KeySpline="1,0,1,1" />
+										</DoubleAnimationUsingKeyFrames>
+										<DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)" Storyboard.TargetName="ProgressAnimationEllipse05">
+											<SplineDoubleKeyFrame KeyTime="0" Value="-400" />
+											<SplineDoubleKeyFrame KeyTime="0:0:0.6" Value="-10" KeySpline="0.5,0.5,0,1" />
+											<SplineDoubleKeyFrame KeyTime="0:0:1.4" Value="10" />
+											<SplineDoubleKeyFrame KeyTime="0:0:2" Value="400" KeySpline="1,0,1,1" />
+										</DoubleAnimationUsingKeyFrames>
+									</Storyboard>
+								</BeginStoryboard>
+							</EventTrigger>
+						</ControlTemplate.Triggers>
+						<Grid Name="TemplateRoot" SnapsToDevicePixels="true">
+							<Rectangle Name="Background" Fill="{TemplateBinding Foreground}" RadiusY="0" RadiusX="0" Opacity="0.3" Visibility="Collapsed" />
+							<Rectangle Name="PART_Track" />
+							<Border Name="AnimationContainer" ClipToBounds="true" Background="Transparent" Visibility="Visible">
+								<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="false">
+									<Ellipse Name="ProgressAnimationEllipse01" Fill="{TemplateBinding Foreground}" Stretch="Uniform" Width="3" Height="3" Margin="4" RenderTransformOrigin="0.5,0.5">
+										<Ellipse.RenderTransform>
+											<TransformGroup>
+												<ScaleTransform />
+												<SkewTransform />
+												<RotateTransform />
+												<TranslateTransform />
+											</TransformGroup>
+										</Ellipse.RenderTransform>
+									</Ellipse>
+									<Ellipse Name="ProgressAnimationEllipse02" Fill="{TemplateBinding Foreground}" Stretch="Uniform" Width="3" Height="3" Margin="4" RenderTransformOrigin="0.5,0.5">
+										<Ellipse.RenderTransform>
+											<TransformGroup>
+												<ScaleTransform />
+												<SkewTransform />
+												<RotateTransform />
+												<TranslateTransform />
+											</TransformGroup>
+										</Ellipse.RenderTransform>
+									</Ellipse>
+									<Ellipse Name="ProgressAnimationEllipse03" Fill="{TemplateBinding Foreground}" Stretch="Uniform" Width="3" Height="3" Margin="4" RenderTransformOrigin="0.5,0.5">
+										<Ellipse.RenderTransform>
+											<TransformGroup>
+												<ScaleTransform />
+												<SkewTransform />
+												<RotateTransform />
+												<TranslateTransform />
+											</TransformGroup>
+										</Ellipse.RenderTransform>
+									</Ellipse>
+									<Ellipse Name="ProgressAnimationEllipse04" Fill="{TemplateBinding Foreground}" Stretch="Uniform" Width="3" Height="3" Margin="4" RenderTransformOrigin="0.5,0.5">
+										<Ellipse.RenderTransform>
+											<TransformGroup>
+												<ScaleTransform />
+												<SkewTransform />
+												<RotateTransform />
+												<TranslateTransform />
+											</TransformGroup>
+										</Ellipse.RenderTransform>
+									</Ellipse>
+									<Ellipse Name="ProgressAnimationEllipse05" Fill="{TemplateBinding Foreground}" Stretch="Uniform" Width="3" Height="3" Margin="4" RenderTransformOrigin="0.5,0.5">
+										<Ellipse.RenderTransform>
+											<TransformGroup>
+												<ScaleTransform />
+												<SkewTransform />
+												<RotateTransform />
+												<TranslateTransform />
+											</TransformGroup>
+										</Ellipse.RenderTransform>
+									</Ellipse>
+								</StackPanel>
+							</Border>
+							<Decorator Name="PART_Indicator" HorizontalAlignment="Left">
+								<Grid Name="Foreground" ClipToBounds="true">
+									<Rectangle Name="Indicator" Fill="{TemplateBinding Foreground}" Visibility="Collapsed" />
+								</Grid>
+							</Decorator>
+						</Grid>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+
+
+
+	</Window.Resources>
+
+	<Grid Background="#60000000">
+		<ProgressBar Value="10" IsIndeterminate="true" Height="10"/>
+	</Grid>
+</Window>
