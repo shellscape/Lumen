@@ -15,6 +15,7 @@ namespace Lumen {
 		private ParsedScript _parsed = null;
 		private FileSystemWatcher _watcher = null;
 		private Hashtable _files = new Hashtable();
+		private List<ExtensionScript> _scripts = new List<ExtensionScript>();
 
 		private object _lock = new object();
 		private Boolean _disposed = false;
@@ -39,25 +40,33 @@ namespace Lumen {
 				_files.Add(filePath, file.LastWriteTimeUtc);
 			}
 
-			String script = String.Empty;
+			LoadScript(entryPoint);
+			
+			var require = _engine.GetList("extension.require");
 
-			using (var sr = new StreamReader(entryPoint)) {
+			foreach (var script in require) {
+				LoadScript(Path.Combine(path, (String)script));
+			};
+		}
+
+		private void LoadScript(String scriptPath) {
+			String script = String.Empty;
+			var file = new FileInfo(scriptPath);
+			var last = _scripts.Last();
+			int startPosition = last.StartPosition + last.Length;
+
+			using (var sr = new StreamReader(scriptPath)) {
 				script = sr.ReadToEnd();
 			}
 
-			_parsed = _engine.Parse(script);
+			_engine.Parse(script);
 
-			var result = _engine.Eval("calculator.contributors");
-
-			var inspector = new Lumen.Scripting.Inspecting.ObjectInspector(result);
-			var names = inspector.GetNames();
-			var hash = inspector.GetList();
-
+			_scripts.Add(new ExtensionScript { Name = file.Name, StartPosition = startPosition, Length = script.Length });
 		}
 
 		void _watcher_Changed(object sender, FileSystemEventArgs e) {
 			_watcher.EnableRaisingEvents = false;
-			
+
 			lock (_lock) {
 
 				DateTime lastWrite = DateTime.UtcNow;

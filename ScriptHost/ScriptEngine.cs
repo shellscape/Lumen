@@ -186,18 +186,20 @@ namespace Lumen.Scripting {
 
 		public List<object> GetList(String expression) {
 			var result = this.Eval(expression);
-			var inspector = new Inspecting.ObjectInspector(result);
-			var list = inspector.GetList();
+			using (var inspector = new Inspecting.ObjectInspector(result)) {
+				var list = inspector.GetList();
 
-			return list;
+				return list;
+			}
 		}
 
 		public System.Collections.Hashtable GetHash(String expression) {
 			var result = this.Eval(expression);
-			var inspector = new Inspecting.ObjectInspector(result);
-			var hash = inspector.GetHash();
+			using (var inspector = new Inspecting.ObjectInspector(result)) {
+				var hash = inspector.GetHash();
 
-			return hash;
+				return hash;
+			}
 		}
 
 		#region .    Disposable    .

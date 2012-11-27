@@ -1,17 +1,15 @@
-﻿var calculator = {
+﻿var extension = {
 	name: "calculator",
 	version: "0.0.1",
 	author: "Shellscape, Andrew Powell <andrew@shellscape.org>",
 	website: "http://shellscape.org",
 	description: "A simple calcuator",
 	contributors: [
-    { name: "Andrew Powell", email: "andrew@shellscape.org" },
-		{ name: "Andrew Powell", email: "andrew@shellscape.org" }
+    { name: "Andrew Powell", email: "andrew@shellscape.org" }
 	],
-	scripts: {
-		jquery: "jquery-1.9.2.min.js",
-		"jquery-ui": "foobar.js"
-	},
+	require: [
+		"lib/jquery-1.8.2.min.js"
+	],
 	
 
 	// extension entry point
@@ -21,6 +19,7 @@
 	},
 
 	results: function(term){ // shows results for a plugin. eg. dictionary, calculator
+		var foo = jquery;
 		return []; // results
 		return null; // no results
 	}, 

@@ -24,15 +24,16 @@ namespace Lumen.Scripting.Inspecting {
 
 			_dispatch = comObject as IDispatch;
 
+
 			if (_dispatch != null) {
 				_object = comObject;
 				_typeInfo = _dispatch.GetTypeInfo(0, 0);
 				_typeInfo.GetTypeAttr(out _pTypeAttr);
 				_typeInfo.GetDocumentation(-1,
-											 out _typeName,
-											 out _typeDescription,
-											 out _typeHelpContext,
-											 out _typeHelpFile);
+												 out _typeName,
+												 out _typeDescription,
+												 out _typeHelpContext,
+												 out _typeHelpFile);
 				_typeInfo.GetContainingTypeLib(out ppTLB, out pIndex);
 				_comTypeLibrary = new ComTypeLibrary(ppTLB);
 			}
@@ -49,6 +50,7 @@ namespace Lumen.Scripting.Inspecting {
 			try {
 				if (_typeInfo != null) {
 					_typeInfo.ReleaseTypeAttr(_pTypeAttr);
+					Marshal.FinalReleaseComObject(_typeInfo);
 				}
 
 				// The _object and _dispatch are COM objects. Because they were
@@ -73,7 +75,6 @@ namespace Lumen.Scripting.Inspecting {
 			}
 		}
 
-
 		public List<String> GetPropertyNames() {
 			var list = new List<String>();
 			var add = new Action<String, Int32>((s, ignored) => { list.Add(s); });
@@ -97,7 +98,7 @@ namespace Lumen.Scripting.Inspecting {
 				int pcNames;
 
 				this._typeInfo.GetVarDesc(i, out pDesc);
-				
+
 				var varDesc = (System.Runtime.InteropServices.ComTypes.VARDESC)Marshal.PtrToStructure(pDesc, typeof(System.Runtime.InteropServices.ComTypes.VARDESC));
 
 				this._typeInfo.ReleaseVarDesc(pDesc);
@@ -126,18 +127,19 @@ namespace Lumen.Scripting.Inspecting {
 				var value = GetValue<object>(name);
 
 				if (value.GetType().GUID.Equals(Guid.Empty)) {
-					var inspector = new ObjectInspector(value);
-					var valueNames = inspector.GetNames();
-					object newValue = null;
+					using (var inspector = new ObjectInspector(value)) {
+						var valueNames = inspector.GetNames();
+						object newValue = null;
 
-					if (valueNames.Count > 0) {
-						if (valueNames[0] == "0") {
-							newValue = inspector.GetList();
+						if (valueNames.Count > 0) {
+							if (valueNames[0] == "0") {
+								newValue = inspector.GetList();
+							}
+							else {
+								newValue = inspector.GetHash();
+							}
+							result.Add(newValue);
 						}
-						else {
-							newValue = inspector.GetHash();
-						}
-						result.Add(newValue);
 					}
 				}
 				else {
@@ -152,23 +154,24 @@ namespace Lumen.Scripting.Inspecting {
 		public Hashtable GetHash() {
 			Hashtable result = new Hashtable();
 			List<String> names = GetNames();
-			
+
 			foreach (var name in names) {
 				var value = GetValue<object>(name);
 
 				if (value.GetType().GUID.Equals(Guid.Empty)) {
-					var inspector = new ObjectInspector(value);
-					var valueNames = inspector.GetNames();
-					object newValue = null;
+					using (var inspector = new ObjectInspector(value)) {
+						var valueNames = inspector.GetNames();
+						object newValue = null;
 
-					if (valueNames.Count > 0) {
-						if(valueNames[0] == "0"){
-							newValue = inspector.GetList();
+						if (valueNames.Count > 0) {
+							if (valueNames[0] == "0") {
+								newValue = inspector.GetList();
+							}
+							else {
+								newValue = inspector.GetHash();
+							}
+							result.Add(name, newValue);
 						}
-						else{
-							newValue = inspector.GetHash();
-						}
-						result.Add(name, newValue);
 					}
 				}
 				else {
