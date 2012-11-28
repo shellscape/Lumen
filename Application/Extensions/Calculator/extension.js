@@ -8,7 +8,7 @@
     { name: "Andrew Powell", email: "andrew@shellscape.org" }
 	],
 	require: [
-		"lib/jquery-1.8.2.min.js"
+		//"lib/jquery-1.8.2.min.js"
 	],
 	
 

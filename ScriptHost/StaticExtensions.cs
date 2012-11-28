@@ -8,6 +8,14 @@ using System.Threading.Tasks;
 namespace Lumen.Scripting {
 	public static class StaticExtensions {
 
+		public static String GetDescription(this Enum value) {
+			DescriptionAttribute attribute = value.GetType()
+					.GetField(value.ToString())
+					.GetCustomAttributes(typeof(DescriptionAttribute), false)
+					.SingleOrDefault() as DescriptionAttribute;
+			return attribute == null ? value.ToString() : attribute.Description;
+		}
+
 		public static T Convert<T>(this object input) {
 
 			try {

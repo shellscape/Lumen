@@ -14,8 +14,8 @@ namespace Lumen {
 		private ScriptEngine _engine = null;
 		private ParsedScript _parsed = null;
 		private FileSystemWatcher _watcher = null;
-		private Hashtable _files = new Hashtable();
-		private List<ExtensionScript> _scripts = new List<ExtensionScript>();
+		private Hashtable _watchedFiles = new Hashtable();
+		private ExtensionScriptManager _scripts = new ExtensionScriptManager();
 
 		private object _lock = new object();
 		private Boolean _disposed = false;
@@ -37,29 +37,43 @@ namespace Lumen {
 
 			foreach (var filePath in files) {
 				var file = new FileInfo(filePath);
-				_files.Add(filePath, file.LastWriteTimeUtc);
+				_watchedFiles.Add(filePath, file.LastWriteTimeUtc);
 			}
 
-			LoadScript(entryPoint);
-			
-			var require = _engine.GetList("extension.require");
+			try {
 
-			foreach (var script in require) {
-				LoadScript(Path.Combine(path, (String)script));
-			};
+				LoadScript(entryPoint);
+
+				var require = _engine.GetList("extension.require");
+
+				foreach (var script in require) {
+					LoadScript(Path.Combine(path, ((String)script).Replace("/", @"\")));
+				};
+
+				ExtensionManager.Current.Add(this);
+			}
+			catch (ScriptException ex) {
+				var s = _scripts.FromLineNumber(ex.Line);
+				ex.Line = s.TranslateLineNumber(ex.Line);
+				System.Windows.MessageBox.Show(ex.ErrorType + ": " + ex.Description + "\t\t\t" + s.Name + ":" + ex.Line);
+			}
 		}
 
 		private void LoadScript(String scriptPath) {
 			String script = String.Empty;
 			var file = new FileInfo(scriptPath);
-			var last = _scripts.Last();
+			var last = _scripts.Count > 0 ? _scripts.Last() : new ExtensionScript();
 			int startPosition = last.StartPosition + last.Length;
 
 			using (var sr = new StreamReader(scriptPath)) {
 				script = sr.ReadToEnd();
 			}
-
-			_engine.Parse(script);
+			try {
+				_engine.Parse(script);
+			}
+			catch (ScriptException ex) {
+				System.Windows.MessageBox.Show(ex.ErrorType + ": " + ex.Description + "\t\t\t" + file.Name+ ":" + ex.Line);
+			}
 
 			_scripts.Add(new ExtensionScript { Name = file.Name, StartPosition = startPosition, Length = script.Length });
 		}
@@ -72,16 +86,20 @@ namespace Lumen {
 				DateTime lastWrite = DateTime.UtcNow;
 				var file = new FileInfo(e.FullPath);
 
-				if (!_files.ContainsKey(e.FullPath)) {
-					_files.Add(e.FullPath, file.LastWriteTimeUtc);
+				if (!_watchedFiles.ContainsKey(e.FullPath)) {
+					_watchedFiles.Add(e.FullPath, file.LastWriteTimeUtc);
 					lastWrite = file.LastWriteTimeUtc;
 				}
 				else {
-					lastWrite = (DateTime)_files[e.FullPath];
+					lastWrite = (DateTime)_watchedFiles[e.FullPath];
 				}
 
 				if (lastWrite != file.LastWriteTimeUtc) {
 					// reload the extension
+					var path = this._extensionPath;
+					ExtensionManager.Current.Remove(this);
+					this.Dispose();
+					var extension = new Extension(path);
 				}
 
 				_watcher.EnableRaisingEvents = true;

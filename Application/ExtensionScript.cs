@@ -11,5 +11,14 @@ namespace Lumen {
 		public int StartPosition { get; set; }
 		public int Length { get; set; }
 
+		/// <summary>
+		/// Translates a global line number (for errors) to the local script line number.
+		/// </summary>
+		/// <param name="lineNumber"></param>
+		/// <returns></returns>
+		public int TranslateLineNumber(int lineNumber) {
+			return lineNumber - StartPosition;
+		}
+
 	}
 }

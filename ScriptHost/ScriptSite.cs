@@ -34,7 +34,7 @@ namespace Lumen.Scripting {
 			uint sourceContext;
 			int lineNumber;
 			int characterPosition;
-			String message = "Script exception: {1}. Error number {0} (0x{0:X8}): {2} at line {3}, column {4}.";
+			String message = "Script error: {1}. Error number {0} (0x{0:X8}): {2} at line {3}, column {4}.";
 			String sourceLine = null;
 			System.Runtime.InteropServices.ComTypes.EXCEPINFO exceptionInfo;
 
@@ -60,7 +60,8 @@ namespace Lumen.Scripting {
 				Description = exceptionInfo.bstrDescription,
 				Line = lineNumber,
 				Number = exceptionInfo.scode,
-				Text = sourceLine
+				Text = sourceLine,
+				ScriptError = (ScriptErrorType)exceptionInfo.scode
 			};
 
 		}

@@ -73,11 +73,7 @@ namespace Lumen.Windows {
 				_windowsSearch.ResultsChanged += WindowsSearch_ResultsChanged;
 			}
 
-			String exePath = Directory.GetParent(System.Reflection.Assembly.GetExecutingAssembly().Location).FullName;
-			String extensionsPath = System.IO.Path.Combine(exePath, "Extensions");
-			String calcPath = System.IO.Path.Combine(extensionsPath, "Calculator");
 
-			var extension = new Extension(calcPath);
 
 			//var o = new ScriptObject();
 
