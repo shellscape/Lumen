@@ -29,6 +29,7 @@ namespace Lumen.Windows {
 		private bool _ignoreChange = false;
 
 		private Search.WindowsSearch _windowsSearch = new Search.WindowsSearch();
+		private List<ExtensionResult> _extensionResults = new List<ExtensionResult>();
 
 		private int _initialWidth = 0;
 		private int _initialHeight = 0;
@@ -193,6 +194,10 @@ namespace Lumen.Windows {
 			var resultPartStyle = (Style)FindResource("ResultPart");
 			var resultKindStyle = (Style)FindResource("ResultKind");
 
+			foreach (var result in _extensionResults) {
+				RenderResult(result.Text, result.Kind);
+			}
+
 			// take the top three in each category (this is how spotlight does it)
 			foreach (var resultKind in categories) {
 
@@ -204,60 +209,79 @@ namespace Lumen.Windows {
 									 select result;
 
 				foreach (var result in test.Take(3)) {
-					var buffer = _buffer.ToString();
+
 					var fileName = result.FileName;
-					var textBlock = new TextBlock() { Style = resultStyle };
+					var buffer = _buffer.ToString();
 
 					result.Touched = true;
 
+					// window search: if the search term doesn't appear in the filename, skip it.
 					int pos = fileName.IndexOf(buffer, StringComparison.CurrentCultureIgnoreCase);
 					if (pos < 0) {
 						continue;
 					}
 
-					var start = fileName.Substring(0, pos);
-					var end = fileName.Substring(pos + buffer.Length);
-					var text = fileName;
-
-					if (!String.IsNullOrEmpty(end)) {
-						text = text.Replace(end, string.Empty);
-					}
-
-					if (!String.IsNullOrEmpty(start)) {
-						text = text.Replace(start, string.Empty);
-					}
-
-					var part = new TextBlock() {
-						Style = resultPartStyle,
-						Text = text,
-						FontWeight = FontWeights.Normal
-					};
-
-					var kindText = String.Empty;
+					RenderResult(fileName, resultKind.ToString() + "s", showCategory);
 
 					if (showCategory) {
-						kindText = resultKind.ToString() + "s";
-
 						showCategory = false;
 					}
 
-					var kind = new TextBlock() {
-						Style = resultKindStyle,
-						Text = kindText,
-						FontWeight = FontWeights.Normal
-					};
+					//var buffer = _buffer.ToString();
+					//var fileName = result.FileName;
+					//var textBlock = new TextBlock() { Style = resultStyle };
 
-					textBlock.Inlines.Add(kind);
-					textBlock.Inlines.Add(start);
-					textBlock.Inlines.Add(part);
-					textBlock.Inlines.Add(end);
+					//result.Touched = true;
 
-					textBlock.Width = _BorderMain.Width;
+					//// only for windows search results
+					//int pos = fileName.IndexOf(buffer, StringComparison.CurrentCultureIgnoreCase);
+					//if (pos < 0) {
+					//	continue;
+					//}
 
-					Grid.SetRow(textBlock, _GridResults.Children.Count);
+					//var start = fileName.Substring(0, pos);
+					//var end = fileName.Substring(pos + buffer.Length);
+					//var text = fileName;
 
-					_GridResults.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
-					_GridResults.Children.Add(textBlock);
+					//if (!String.IsNullOrEmpty(end)) {
+					//	text = text.Replace(end, string.Empty);
+					//}
+
+					//if (!String.IsNullOrEmpty(start)) {
+					//	text = text.Replace(start, string.Empty);
+					//}
+
+					//var part = new TextBlock() {
+					//	Style = resultPartStyle,
+					//	Text = text,
+					//	FontWeight = FontWeights.Normal
+					//};
+
+					//var kindText = String.Empty;
+
+					//if (showCategory) {
+					//	kindText = resultKind.ToString() + "s"; // only for windows search
+
+					//	showCategory = false;
+					//}
+
+					//var kind = new TextBlock() {
+					//	Style = resultKindStyle,
+					//	Text = kindText,
+					//	FontWeight = FontWeights.Normal
+					//};
+
+					//textBlock.Inlines.Add(kind);
+					//textBlock.Inlines.Add(start);
+					//textBlock.Inlines.Add(part);
+					//textBlock.Inlines.Add(end);
+
+					//textBlock.Width = _BorderMain.Width;
+
+					//Grid.SetRow(textBlock, _GridResults.Children.Count);
+
+					//_GridResults.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+					//_GridResults.Children.Add(textBlock);
 				}
 
 				showCategory = true;
@@ -265,8 +289,62 @@ namespace Lumen.Windows {
 			}
 		}
 
-		private void RenderResult(String fileName, String category) {
+		private void RenderResult(String text, String category, Boolean showCategory) {
 
+			var resultStyle = (Style)FindResource("Result");
+			var resultPartStyle = (Style)FindResource("ResultPart");
+			var resultKindStyle = (Style)FindResource("ResultKind");			
+			var buffer = _buffer.ToString();
+			var textBlock = new TextBlock() { Style = resultStyle };
+
+			if (!showCategory) {
+				category = String.Empty;
+			}
+
+			var kind = new TextBlock() {
+				Style = resultKindStyle,
+				Text = category,
+				FontWeight = FontWeights.Normal
+			};
+			
+			textBlock.Inlines.Add(kind);
+
+			int pos = text.IndexOf(buffer, StringComparison.CurrentCultureIgnoreCase);
+			if (pos >= 0) {
+
+				var start = text.Substring(0, pos);
+				var end = text.Substring(pos + buffer.Length);
+				var highlighted = text;
+
+				if (!String.IsNullOrEmpty(end)) {
+					highlighted = highlighted.Replace(end, string.Empty);
+				}
+
+				if (!String.IsNullOrEmpty(start)) {
+					highlighted = highlighted.Replace(start, string.Empty);
+				}
+
+				var part = new TextBlock() {
+					Style = resultPartStyle,
+					Text = highlighted,
+					FontWeight = FontWeights.Normal
+				};
+
+				textBlock.Inlines.Add(start);
+				textBlock.Inlines.Add(part);
+				textBlock.Inlines.Add(end);
+			}
+			else {
+				textBlock.Inlines.Add(text);
+			}
+
+			textBlock.Width = _BorderMain.Width;
+
+			Grid.SetRow(textBlock, _GridResults.Children.Count);
+
+			_GridResults.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+			_GridResults.Children.Add(textBlock);
+			
 		}
 
 		private void ProcessCommand() {
