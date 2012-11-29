@@ -21,6 +21,10 @@ namespace Lumen {
 
 		public String extensionName { set { _extension.Name = value; } }
 
+		public void require(String what) {
+			_extension.Require(what);
+		}
+
 		public void alert(String message) {
 			System.Windows.MessageBox.Show(message);
 		}

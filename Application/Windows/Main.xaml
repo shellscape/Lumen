@@ -285,6 +285,9 @@
 				<Grid Name="_GridResults" Grid.Row="2">
 
 				</Grid>
+				<Grid Name="_GridSearchResults" Grid.Row="3">
+
+				</Grid>
 			</Grid>
 		</Border>
 

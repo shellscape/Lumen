@@ -12,7 +12,8 @@ using Lumen.Search;
 namespace Lumen {
 	public class Extension : IDisposable {
 
-		private const String __extension = "__extension";
+		private const String _extensionIdent = "__extension";
+		private ParsedScript __extension = null;
 
 		private ScriptEngine _engine = null;
 		private ParsedScript _parsed = null;
@@ -47,15 +48,11 @@ namespace Lumen {
 
 			try {
 
+				LoadScript(Path.Combine(path, @"..\common.js"));
+				
 				_parsed = LoadScript(entryPoint);
 
-				var require = new List<object>(); // _engine.GetList("extension.require");
-
-				require.Add(@"\..\common.js");
-
-				foreach (var script in require) {
-					LoadScript(Path.Combine(path, ((String)script).Replace("/", @"\")));
-				};
+				__extension = new ParsedScript(_engine, _engine.Eval(_extensionIdent));
 
 				ExtensionManager.Current.Add(this);
 			}
@@ -64,6 +61,13 @@ namespace Lumen {
 				ex.Line = s.TranslateLineNumber(ex.Line);
 				System.Windows.MessageBox.Show(ex.ErrorType + ": " + ex.Description + "\t\t\t" + s.Name + ":" + ex.Line);
 			}
+		}
+
+		internal void Require(String what) {
+			what = ((String)what).Replace("/", @"\");
+			var combined = Path.Combine(_extensionPath, what);
+
+			LoadScript(combined);
 		}
 
 		~Extension() {
@@ -78,32 +82,26 @@ namespace Lumen {
 		public List<ExtensionResult> GetResults(String term) {
 			var results = new List<ExtensionResult>();
 
-			var extResults = _parsed.CallMethod(__extension + ".results", term);
+			var extResults = __extension.CallMethod("results", term);
 
 			// if it's null or not an array (__COMObject Type) then gtfo
-			if (results == null || !results.IsComObject()) {
+			if (extResults == null || !extResults.IsComObject()) {
 				return null;
 			}
 
 			using (var inspector = new Scripting.Inspecting.ObjectInspector(extResults)) {
 				foreach (var result in inspector.GetList()) {
-					
-					// if they didn't return an array item of hash, continue
-					if (result == null || !result.IsComObject()) {
-						continue;
-					}
 
-					using(var insp = new Scripting.Inspecting.ObjectInspector(result)){
-						var hash = insp.GetHash();
+						var hash = result as Hashtable;
 						if (!hash.ContainsKey("text")) {
 							continue;
 						}
 
-						String text = (String)hash.TryGetValue("text");
-						String command = (String)hash.TryGetValue("command");
+						String text = hash.TryGetValue("text").Convert<String>();
+						String command = hash.TryGetValue("command").Convert<String>();
 
-						results.Add(new ExtensionResult() { Text = text, Command = command, Kind = this.Name });
-					}
+						results.Add(new ExtensionResult() { Text = text, Command = command, ExtensionName = this.Name });
+
 				}
 			}
 

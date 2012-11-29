@@ -9,7 +9,7 @@ namespace Lumen.Search {
 
 		public String Text { get; set; }
 		public String Command { get; set; }
-		public String Kind { get; set; }
+		public String ExtensionName { get; set; }
 
 	}
 }

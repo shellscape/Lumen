@@ -35,6 +35,10 @@ namespace Lumen.Windows {
 		private int _initialHeight = 0;
 		private int _resultHeight = 0;
 
+		private Style _resultStyle = null;
+		private Style _resultPartStyle = null;
+		private Style _resultKindStyle = null;
+
 		[ComVisible(true)]
 		public class ScriptObject {
 			public void alert(String what) {
@@ -74,18 +78,10 @@ namespace Lumen.Windows {
 				_windowsSearch.ResultsChanged += WindowsSearch_ResultsChanged;
 			}
 
+			_resultStyle = (Style)FindResource("Result");
+			_resultPartStyle = (Style)FindResource("ResultPart");
+			_resultKindStyle = (Style)FindResource("ResultKind");
 
-
-			//var o = new ScriptObject();
-
-			//ScriptEngine engine = new ScriptEngine();
-			
-			//var result = engine.Parse("var a = 10; function doit(){ sys.alert(a); };");
-
-			//engine.SetNamedItem("sys", o);
-
-			//Dictionary<String, int> functions = result.GetFunctions();
-			////engine.Eval("alert(a);");
 		}
 
 		void _Canvas_SizeChanged(object sender, SizeChangedEventArgs e) {
@@ -135,17 +131,22 @@ namespace Lumen.Windows {
 			_GridResults.Children.Clear();
 			_GridResults.RowDefinitions.Clear();
 
+			_GridSearchResults.Children.Clear();
+			_GridSearchResults.RowDefinitions.Clear();
+
 			if (_buffer.Length > 2) {
 				_Progress.Visibility = System.Windows.Visibility.Visible;
 
-				var results = new List<ExtensionResult>();
+				_extensionResults.Clear();
 
 				ExtensionManager.Current.ForEach((e) => {
 					var extResults = e.GetResults(_buffer);
 					if (extResults != null) {
-						results.AddRange(extResults);
+						_extensionResults.AddRange(extResults);
 					}
 				});
+
+				DisplayExtensionResults();
 
 				_windowsSearch.Search(_buffer);
 			}
@@ -184,19 +185,26 @@ namespace Lumen.Windows {
 			return categories;
 		}
 
-		private void DisplaySearchResults() {
+		private void DisplayExtensionResults() {
 
 			_GridResults.Children.Clear();
 			_GridResults.RowDefinitions.Clear();
 
-			var categories = PrepareCategories();
-			var resultStyle = (Style)FindResource("Result");
-			var resultPartStyle = (Style)FindResource("ResultPart");
-			var resultKindStyle = (Style)FindResource("ResultKind");
+			String previous = String.Empty;
 
 			foreach (var result in _extensionResults) {
-				RenderResult(result.Text, result.Kind);
+				RenderResult(result.Text, result.ExtensionName, previous != result.ExtensionName, _GridResults);
+				previous = result.ExtensionName;
 			}
+
+		}
+
+		private void DisplaySearchResults() {
+
+			_GridSearchResults.Children.Clear();
+			_GridSearchResults.RowDefinitions.Clear();
+
+			var categories = PrepareCategories();
 
 			// take the top three in each category (this is how spotlight does it)
 			foreach (var resultKind in categories) {
@@ -221,67 +229,11 @@ namespace Lumen.Windows {
 						continue;
 					}
 
-					RenderResult(fileName, resultKind.ToString() + "s", showCategory);
+					RenderResult(fileName, resultKind.ToString() + "s", showCategory, _GridSearchResults);
 
 					if (showCategory) {
 						showCategory = false;
 					}
-
-					//var buffer = _buffer.ToString();
-					//var fileName = result.FileName;
-					//var textBlock = new TextBlock() { Style = resultStyle };
-
-					//result.Touched = true;
-
-					//// only for windows search results
-					//int pos = fileName.IndexOf(buffer, StringComparison.CurrentCultureIgnoreCase);
-					//if (pos < 0) {
-					//	continue;
-					//}
-
-					//var start = fileName.Substring(0, pos);
-					//var end = fileName.Substring(pos + buffer.Length);
-					//var text = fileName;
-
-					//if (!String.IsNullOrEmpty(end)) {
-					//	text = text.Replace(end, string.Empty);
-					//}
-
-					//if (!String.IsNullOrEmpty(start)) {
-					//	text = text.Replace(start, string.Empty);
-					//}
-
-					//var part = new TextBlock() {
-					//	Style = resultPartStyle,
-					//	Text = text,
-					//	FontWeight = FontWeights.Normal
-					//};
-
-					//var kindText = String.Empty;
-
-					//if (showCategory) {
-					//	kindText = resultKind.ToString() + "s"; // only for windows search
-
-					//	showCategory = false;
-					//}
-
-					//var kind = new TextBlock() {
-					//	Style = resultKindStyle,
-					//	Text = kindText,
-					//	FontWeight = FontWeights.Normal
-					//};
-
-					//textBlock.Inlines.Add(kind);
-					//textBlock.Inlines.Add(start);
-					//textBlock.Inlines.Add(part);
-					//textBlock.Inlines.Add(end);
-
-					//textBlock.Width = _BorderMain.Width;
-
-					//Grid.SetRow(textBlock, _GridResults.Children.Count);
-
-					//_GridResults.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
-					//_GridResults.Children.Add(textBlock);
 				}
 
 				showCategory = true;
@@ -289,24 +241,21 @@ namespace Lumen.Windows {
 			}
 		}
 
-		private void RenderResult(String text, String category, Boolean showCategory) {
+		private void RenderResult(String text, String category, Boolean showCategory, Grid grid) {
 
-			var resultStyle = (Style)FindResource("Result");
-			var resultPartStyle = (Style)FindResource("ResultPart");
-			var resultKindStyle = (Style)FindResource("ResultKind");			
 			var buffer = _buffer.ToString();
-			var textBlock = new TextBlock() { Style = resultStyle };
+			var textBlock = new TextBlock() { Style = _resultStyle };
 
 			if (!showCategory) {
 				category = String.Empty;
 			}
 
 			var kind = new TextBlock() {
-				Style = resultKindStyle,
+				Style = _resultKindStyle,
 				Text = category,
 				FontWeight = FontWeights.Normal
 			};
-			
+
 			textBlock.Inlines.Add(kind);
 
 			int pos = text.IndexOf(buffer, StringComparison.CurrentCultureIgnoreCase);
@@ -325,7 +274,7 @@ namespace Lumen.Windows {
 				}
 
 				var part = new TextBlock() {
-					Style = resultPartStyle,
+					Style = _resultPartStyle,
 					Text = highlighted,
 					FontWeight = FontWeights.Normal
 				};
@@ -340,11 +289,11 @@ namespace Lumen.Windows {
 
 			textBlock.Width = _BorderMain.Width;
 
-			Grid.SetRow(textBlock, _GridResults.Children.Count);
+			Grid.SetRow(textBlock, grid.Children.Count);
 
-			_GridResults.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
-			_GridResults.Children.Add(textBlock);
-			
+			grid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+			grid.Children.Add(textBlock);
+
 		}
 
 		private void ProcessCommand() {
