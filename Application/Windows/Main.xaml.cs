@@ -65,13 +65,20 @@ namespace Lumen.Windows {
 			_TextCommand.TextChanged += _TextCommand_TextChanged;
 			_BorderMain.SizeChanged += _Canvas_SizeChanged;
 
-			_commands.AddRange(new LumenCommand[]{
-				new LumenCommand(){ Command = "open", ParameterHint = "target" },
-				new LumenCommand(){ Command = "open run", ParameterHint = "" },
-				new LumenCommand(){ Command = "open google", ParameterHint = "" },
-				new LumenCommand(){ Command = "open git", ParameterHint = "" },
-				new LumenCommand(){ Command = "github", ParameterHint = "" },
-				new LumenCommand(){ Command = "github issues", ParameterHint = "" }
+			//_commands.AddRange(new LumenCommand[]{
+			//	new LumenCommand(){ Command = "open", ParameterHint = "target" },
+			//	new LumenCommand(){ Command = "open run", ParameterHint = "" },
+			//	new LumenCommand(){ Command = "open google", ParameterHint = "" },
+			//	new LumenCommand(){ Command = "open git", ParameterHint = "" },
+			//	new LumenCommand(){ Command = "github", ParameterHint = "" },
+			//	new LumenCommand(){ Command = "github issues", ParameterHint = "" }
+			//});
+
+			ExtensionManager.Current.ForEach((e) => {
+				var commands = e.GetCommands();
+				commands.ForEach((c) => {
+					_commands.Add(new LumenCommand() { Command = c, ParameterHint = "" });
+				});
 			});
 
 			if (Search.WindowsSearchProvider.IsAvailable) {

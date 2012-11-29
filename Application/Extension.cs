@@ -108,6 +108,15 @@ namespace Lumen {
 			return results;
 		}
 
+		public List<String> GetCommands() {
+			var commands = _engine.GetHash(_extensionIdent + ".commands");
+			var result = new List<String>();
+			foreach (var command in commands.Keys) {
+				result.Add(command as String);
+			}
+			return result;
+		}
+
 		private ParsedScript LoadScript(String scriptPath) {
 			ParsedScript result = null;
 			String script = String.Empty;

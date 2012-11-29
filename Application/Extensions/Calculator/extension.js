@@ -28,11 +28,18 @@
 		],
 
 		commands: {
-			"open calculator": function () {
-				lumen.run("calc.exe");
+			"open calculator": {
+				description: "opens the calculator",
+				method: function () {
+					lumen.run("calc.exe");
+				}
 			},
-			"calc": function (params) {
-				lumen.alert(eval(params));
+			"calc": {
+				description: "calculate the given expression",
+				hint: "expression",
+				method: function (params) {
+					lumen.alert(eval(params));
+				}
 			}
 		},
 

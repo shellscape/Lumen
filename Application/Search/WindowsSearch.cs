@@ -96,9 +96,6 @@ namespace Lumen.Search {
 					Thread.Sleep(250);
 				}
 
-				// Perform the search then update the list
-				//_terms = WindowsSearchProvider.Search(data);
-				//_results = _terms.ToArray();
 				_results = WindowsSearchProvider.Search(data);
 
 				OnResultsChanged();
