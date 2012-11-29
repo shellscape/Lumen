@@ -40,11 +40,15 @@ namespace Lumen {
 				_watchedFiles.Add(filePath, file.LastWriteTimeUtc);
 			}
 
+			_engine.SetNamedItem("lumen", new LumenScript(this));
+
 			try {
 
 				LoadScript(entryPoint);
 
 				var require = _engine.GetList("extension.require");
+
+				require.Add(@"\..\common.js");
 
 				foreach (var script in require) {
 					LoadScript(Path.Combine(path, ((String)script).Replace("/", @"\")));
@@ -58,6 +62,11 @@ namespace Lumen {
 				System.Windows.MessageBox.Show(ex.ErrorType + ": " + ex.Description + "\t\t\t" + s.Name + ":" + ex.Line);
 			}
 		}
+
+		/// <summary>
+		/// The javascript identifier of the extension.
+		/// </summary>
+		public String Name { get; set; }
 
 		private void LoadScript(String scriptPath) {
 			String script = String.Empty;
@@ -78,7 +87,7 @@ namespace Lumen {
 			_scripts.Add(new ExtensionScript { Name = file.Name, StartPosition = startPosition, Length = script.Length });
 		}
 
-		void _watcher_Changed(object sender, FileSystemEventArgs e) {
+		private void _watcher_Changed(object sender, FileSystemEventArgs e) {
 			_watcher.EnableRaisingEvents = false;
 
 			lock (_lock) {
