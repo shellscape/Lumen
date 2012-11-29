@@ -20,6 +20,12 @@ namespace Lumen.Scripting {
 			this._dispatch = Marshal.GetObjectForIUnknown(dispatch);
 		}
 
+		public ParsedScript(ScriptEngine engine, object dispatch) {
+			this._engine = engine;
+			this._dispatch = dispatch;
+		}
+
+
 		/// <summary>
 		///   returns the list of functions/methods defined in the script.
 		/// </summary>
