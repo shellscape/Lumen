@@ -37,7 +37,7 @@
 
 		results: function (term) { // shows results for a plugin. eg. dictionary, calculator
 			var result = eval(term);
-			return isNaN(result) ? null : [result];
+			return isNaN(result) ? null : [{ text: result, command: "calc.exe" }];
 		}
 
 

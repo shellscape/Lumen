@@ -7,9 +7,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Lumen.Scripting;
+using Lumen.Search;
 
 namespace Lumen {
 	public class Extension : IDisposable {
+
+		private const String __extension = "__extension";
 
 		private ScriptEngine _engine = null;
 		private ParsedScript _parsed = null;
@@ -44,9 +47,9 @@ namespace Lumen {
 
 			try {
 
-				LoadScript(entryPoint);
+				_parsed = LoadScript(entryPoint);
 
-				var require = _engine.GetList("extension.require");
+				var require = new List<object>(); // _engine.GetList("extension.require");
 
 				require.Add(@"\..\common.js");
 
@@ -63,12 +66,52 @@ namespace Lumen {
 			}
 		}
 
+		~Extension() {
+			Dispose();
+		}
+
 		/// <summary>
 		/// The javascript identifier of the extension.
 		/// </summary>
 		public String Name { get; set; }
 
-		private void LoadScript(String scriptPath) {
+		public List<ExtensionResult> GetResults(String term) {
+			var results = new List<ExtensionResult>();
+
+			var extResults = _parsed.CallMethod(__extension + ".results", term);
+
+			// if it's null or not an array (__COMObject Type) then gtfo
+			if (results == null || !results.IsComObject()) {
+				return null;
+			}
+
+			using (var inspector = new Scripting.Inspecting.ObjectInspector(extResults)) {
+				foreach (var result in inspector.GetList()) {
+					
+					// if they didn't return an array item of hash, continue
+					if (result == null || !result.IsComObject()) {
+						continue;
+					}
+
+					using(var insp = new Scripting.Inspecting.ObjectInspector(result)){
+						var hash = insp.GetHash();
+						if (!hash.ContainsKey("text")) {
+							continue;
+						}
+
+						String text = (String)hash.TryGetValue("text");
+						String command = (String)hash.TryGetValue("command");
+
+						results.Add(new ExtensionResult() { Text = text, Command = command, Kind = this.Name });
+					}
+				}
+			}
+
+			return results;
+		}
+
+		private ParsedScript LoadScript(String scriptPath) {
+			ParsedScript result = null;
 			String script = String.Empty;
 			var file = new FileInfo(scriptPath);
 			var last = _scripts.Count > 0 ? _scripts.Last() : new ExtensionScript();
@@ -78,13 +121,15 @@ namespace Lumen {
 				script = sr.ReadToEnd();
 			}
 			try {
-				_engine.Parse(script);
+				result = _engine.Parse(script);
 			}
 			catch (ScriptException ex) {
 				System.Windows.MessageBox.Show(ex.ErrorType + ": " + ex.Description + "\t\t\t" + file.Name+ ":" + ex.Line);
 			}
 
 			_scripts.Add(new ExtensionScript { Name = file.Name, StartPosition = startPosition, Length = script.Length });
+
+			return result;
 		}
 
 		private void _watcher_Changed(object sender, FileSystemEventArgs e) {
@@ -114,11 +159,7 @@ namespace Lumen {
 				_watcher.EnableRaisingEvents = true;
 			}
 		}
-
-		~Extension() {
-			Dispose();
-		}
-
+				
 		public void Dispose() {
 			if (!_disposed) {
 				_disposed = true;

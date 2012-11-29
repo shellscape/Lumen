@@ -137,6 +137,15 @@ namespace Lumen.Windows {
 			if (_buffer.Length > 2) {
 				_Progress.Visibility = System.Windows.Visibility.Visible;
 
+				var results = new List<ExtensionResult>();
+
+				ExtensionManager.Current.ForEach((e) => {
+					var extResults = e.GetResults(_buffer);
+					if (extResults != null) {
+						results.AddRange(extResults);
+					}
+				});
+
 				_windowsSearch.Search(_buffer);
 			}
 		}
@@ -254,6 +263,10 @@ namespace Lumen.Windows {
 				showCategory = true;
 
 			}
+		}
+
+		private void RenderResult(String fileName, String category) {
+
 		}
 
 		private void ProcessCommand() {

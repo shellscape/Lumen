@@ -79,10 +79,12 @@
     <Compile Include="ExtensionScriptManager.cs" />
     <Compile Include="IEnumerableExtensions.cs" />
     <Compile Include="LumenScript.cs" />
+    <Compile Include="Search\ExtensionResult.cs" />
     <Compile Include="Search\WindowsSearchProvider.cs" />
     <Compile Include="FlowDocumentExtensions.cs" />
     <Compile Include="Search\WindowsSearch.cs" />
     <Compile Include="Search\WindowsSearchResult.cs" />
+    <Compile Include="StaticExtensions.cs" />
     <Compile Include="Windows\Main.xaml.cs">
       <DependentUpon>Main.xaml</DependentUpon>
       <SubType>Code</SubType>
