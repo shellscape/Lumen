@@ -32,6 +32,7 @@ namespace Lumen.Windows {
 		private Search.WindowsSearch _windowsSearch = new Search.WindowsSearch();
 		private List<ExtensionResult> _extensionResults = new List<ExtensionResult>();
 
+		private int _cursorPosition = 0;
 		private int _initialWidth = 0;
 		private int _initialHeight = 0;
 		private int _resultHeight = 0;
@@ -51,11 +52,18 @@ namespace Lumen.Windows {
 			InitializeComponent();
 			
 			this.WindowStartupLocation = WindowStartupLocation.Manual;
-			this.Visibility = Visibility.Hidden;
 			this.Top = this.Left = 0;
 
 			var style = (Style)FindResource("CommandInput");
 			var block = new RichTextBox() { Style = style };
+
+			this.Loaded += delegate(object sender, RoutedEventArgs e) {
+				this.Visibility = Visibility.Hidden;
+		
+				_hotkeys = new HotKeyHandeler(this);
+				_hotkeys.RegisterHotKey(AccessModifierKeys.Win | AccessModifierKeys.Alt, Key.Space);
+				_hotkeys.HotKeyPressed += _hotkeys_HotKeyPressed;
+			};
 
 			_initialWidth = block.Width == 0 ? 660 : (int)block.Width;
 
@@ -66,10 +74,6 @@ namespace Lumen.Windows {
 
 			_TextCommand.TextChanged += _TextCommand_TextChanged;
 			_BorderMain.SizeChanged += _Canvas_SizeChanged;
-
-			_hotkeys = new HotKeyHandeler(this);
-			_hotkeys.RegisterHotKey(AccessModifierKeys.Win, Key.Space);
-			_hotkeys.HotKeyPressed += _hotkeys_HotKeyPressed;
 
 			//_commands.AddRange(new LumenCommand[]{
 			//	new LumenCommand(){ Command = "open", ParameterHint = "target" },
@@ -109,6 +113,15 @@ namespace Lumen.Windows {
 			}
 			else if (e.Key == Key.Enter || e.Key == Key.Return) {
 				// TODO: execute the command
+			}
+			else if (e.Key == Key.Down || e.Key == Key.Up) {
+				// TODO: implement history
+				if (e.Key == Key.Down) {
+
+				}
+				else if (e.Key == Key.Up) {
+
+				}
 			}
 		}
 
