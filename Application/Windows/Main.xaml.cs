@@ -24,6 +24,7 @@ namespace Lumen.Windows {
 	/// </summary>
 	public partial class Main : Window {
 
+		private HotKeyHandeler _hotkeys;
 		private List<LumenCommand> _commands = new List<LumenCommand>();
 		private String _buffer = String.Empty;
 		private bool _ignoreChange = false;
@@ -48,8 +49,9 @@ namespace Lumen.Windows {
 
 		public Main() {
 			InitializeComponent();
-
-			this.WindowStartupLocation = System.Windows.WindowStartupLocation.Manual;
+			
+			this.WindowStartupLocation = WindowStartupLocation.Manual;
+			this.Visibility = Visibility.Hidden;
 			this.Top = this.Left = 0;
 
 			var style = (Style)FindResource("CommandInput");
@@ -64,6 +66,10 @@ namespace Lumen.Windows {
 
 			_TextCommand.TextChanged += _TextCommand_TextChanged;
 			_BorderMain.SizeChanged += _Canvas_SizeChanged;
+
+			_hotkeys = new HotKeyHandeler(this);
+			_hotkeys.RegisterHotKey(AccessModifierKeys.Win, Key.Space);
+			_hotkeys.HotKeyPressed += _hotkeys_HotKeyPressed;
 
 			//_commands.AddRange(new LumenCommand[]{
 			//	new LumenCommand(){ Command = "open", ParameterHint = "target" },
@@ -91,7 +97,26 @@ namespace Lumen.Windows {
 
 		}
 
-		void _Canvas_SizeChanged(object sender, SizeChangedEventArgs e) {
+		protected override void OnLostFocus(RoutedEventArgs e) {
+			base.OnLostFocus(e);
+			this.Visibility = Visibility.Hidden;
+		}
+
+		protected override void OnKeyUp(KeyEventArgs e) {
+			base.OnKeyUp(e);
+			if (e.Key == Key.Escape) {
+				this.Visibility = Visibility.Hidden;
+			}
+			else if (e.Key == Key.Enter || e.Key == Key.Return) {
+				// TODO: execute the command
+			}
+		}
+
+		private void _hotkeys_HotKeyPressed(object sender, HotKeyEventArgs e) {
+			this.Visibility = System.Windows.Visibility.Visible;
+		}
+
+		private void _Canvas_SizeChanged(object sender, SizeChangedEventArgs e) {
 			if (_initialHeight == 0) {
 				_initialHeight = (int)(_BorderHeader.ActualHeight + _BorderMain.ActualHeight);
 			}

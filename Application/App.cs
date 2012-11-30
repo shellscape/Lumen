@@ -2,6 +2,7 @@
 using System.CodeDom.Compiler;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 
 namespace Lumen {
@@ -39,7 +40,8 @@ namespace Lumen {
 			String calcPath = System.IO.Path.Combine(extensionsPath, "Calculator");
 
 			var extension = new Extension(calcPath);
-			
+					
+
 			app.Run();
 		}
 	}
