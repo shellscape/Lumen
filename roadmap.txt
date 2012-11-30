@@ -29,3 +29,8 @@ Plugin Structure
 	}, 
 	execute: (name, params) // executes a command
 }
+
+==============
+
+dictionary ext
+command history ext

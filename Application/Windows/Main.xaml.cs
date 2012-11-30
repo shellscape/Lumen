@@ -41,13 +41,6 @@ namespace Lumen.Windows {
 		private Style _resultPartStyle = null;
 		private Style _resultKindStyle = null;
 
-		[ComVisible(true)]
-		public class ScriptObject {
-			public void alert(String what) {
-				MessageBox.Show(what);
-			}
-		}
-
 		public Main() {
 			InitializeComponent();
 			
@@ -95,10 +88,7 @@ namespace Lumen.Windows {
 				_windowsSearch.ResultsChanged += WindowsSearch_ResultsChanged;
 			}
 
-			_resultStyle = (Style)FindResource("Result");
-			_resultPartStyle = (Style)FindResource("ResultPart");
-			_resultKindStyle = (Style)FindResource("ResultKind");
-
+			Styles.Init(this);
 		}
 
 		protected override void OnLostFocus(RoutedEventArgs e) {
@@ -115,7 +105,7 @@ namespace Lumen.Windows {
 				// TODO: execute the command
 			}
 			else if (e.Key == Key.Down || e.Key == Key.Up) {
-				// TODO: implement history
+				
 				if (e.Key == Key.Down) {
 
 				}
@@ -285,86 +275,7 @@ namespace Lumen.Windows {
 
 			}
 		}
-
-		private void RenderResult(String text, String category, Boolean showCategory, Grid grid) {
-
-			var buffer = _buffer.ToString();
-			var textBlock = new TextBlock() { Style = _resultStyle };
-
-			if (!showCategory) {
-				category = String.Empty;
-			}
-
-			var kind = new TextBlock() {
-				Style = _resultKindStyle,
-				Text = category,
-				FontWeight = FontWeights.Normal
-			};
-
-			textBlock.Inlines.Add(kind);
-
-			int pos = text.IndexOf(buffer, StringComparison.CurrentCultureIgnoreCase);
-			if (pos >= 0) {
-
-				var start = text.Substring(0, pos);
-				var end = text.Substring(pos + buffer.Length);
-				var highlighted = text;
-
-				if (!String.IsNullOrEmpty(end)) {
-					highlighted = highlighted.Replace(end, string.Empty);
-				}
-
-				if (!String.IsNullOrEmpty(start)) {
-					highlighted = highlighted.Replace(start, string.Empty);
-				}
-
-				var part = new TextBlock() {
-					Style = _resultPartStyle,
-					Text = highlighted,
-					FontWeight = FontWeights.Normal
-				};
-
-				textBlock.Inlines.Add(start);
-				textBlock.Inlines.Add(part);
-				textBlock.Inlines.Add(end);
-			}
-			else {
-				textBlock.Inlines.Add(text);
-			}
-
-			textBlock.Width = _BorderMain.Width;
-
-			Grid.SetRow(textBlock, grid.Children.Count);
-
-			grid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
-			grid.Children.Add(textBlock);
-
-		}
-
-		private void ProcessCommand() {
-			var distances = new List<LumenCommandDistance>();
-			LumenCommand topCommand = null;
-
-			if (_buffer.Length > 0) {
-
-				foreach (var command in _commands) {
-					if (!command.Command.Contains(_buffer)) {
-						continue;
-					}
-					int distance = LevenshteinDistance(_buffer, command.Command);
-					distances.Add(new LumenCommandDistance() { Distance = distance, Command = command });
-				}
-				distances = distances.OrderBy(o => o.Distance).ToList();
-			}
-
-			if (distances.Count > 0) {
-				topCommand = distances.Take(1).SingleOrDefault().Command;
-			}
-
-			FormatPrompt(topCommand);
-			DisplayCommands(distances.Select(o => o.Command).Take(10).ToList());
-		}
-
+	
 		private void DisplayCommands(List<LumenCommand> commands) {
 
 			_GridCommands.Children.Clear();
@@ -397,6 +308,87 @@ namespace Lumen.Windows {
 
 				_GridCommands.Children.Add(textBlock);
 			}
+		}
+
+		private void RenderResult(String text, String category, Boolean showCategory, Grid grid) {
+
+			//var buffer = _buffer.ToString();
+			//var textBlock = new TextBlock() { Style = _resultStyle };
+
+			//if (!showCategory) {
+			//	category = String.Empty;
+			//}
+
+			//var kind = new TextBlock() {
+			//	Style = _resultKindStyle,
+			//	Text = category,
+			//	FontWeight = FontWeights.Normal
+			//};
+
+			//textBlock.Inlines.Add(kind);
+
+			//int pos = text.IndexOf(buffer, StringComparison.CurrentCultureIgnoreCase);
+			//if (pos >= 0) {
+
+			//	var start = text.Substring(0, pos);
+			//	var end = text.Substring(pos + buffer.Length);
+			//	var highlighted = text;
+
+			//	if (!String.IsNullOrEmpty(end)) {
+			//		highlighted = highlighted.Replace(end, string.Empty);
+			//	}
+
+			//	if (!String.IsNullOrEmpty(start)) {
+			//		highlighted = highlighted.Replace(start, string.Empty);
+			//	}
+
+			//	var part = new TextBlock() {
+			//		Style = _resultPartStyle,
+			//		Text = highlighted,
+			//		FontWeight = FontWeights.Normal
+			//	};
+
+			//	textBlock.Inlines.Add(start);
+			//	textBlock.Inlines.Add(part);
+			//	textBlock.Inlines.Add(end);
+			//}
+			//else {
+			//	textBlock.Inlines.Add(text);
+			//}
+
+			var block = new ResultBlock(text, _buffer.ToString(), category) { Width = _BorderMain.Width, ShowCategory = showCategory };
+
+			//textBlock.Width = _BorderMain.Width;
+
+			Grid.SetRow(block, grid.Children.Count);
+
+			grid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+			grid.Children.Add(block);
+
+		}
+
+		private void ProcessCommand() {
+			var distances = new List<LumenCommandDistance>();
+			LumenCommand topCommand = null;
+
+			if (_buffer.Length > 0) {
+
+				foreach (var command in _commands) {
+					if (!command.Command.Contains(_buffer)) {
+						continue;
+					}
+					int distance = LevenshteinDistance(_buffer, command.Command);
+					distances.Add(new LumenCommandDistance() { Distance = distance, Command = command });
+				}
+				distances = distances.OrderBy(o => o.Distance).ToList();
+			}
+
+			if (distances.Count > 0) {
+				topCommand = distances.Take(1).SingleOrDefault().Command;
+			}
+
+			FormatPrompt(topCommand);
+			DisplayCommands(distances.Select(o => o.Command).Take(10).ToList());
 		}
 
 		private void FormatPrompt(LumenCommand command) {
@@ -461,20 +453,6 @@ namespace Lumen.Windows {
 			// Step 7
 			return d[n, m];
 		}
-
-	}
-
-	public class LumenCommand {
-
-		public String Command { get; set; }
-		public String ParameterHint { get; set; }
-
-	}
-
-	public class LumenCommandDistance {
-
-		public LumenCommand Command { get; set; }
-		public int Distance { get; set; }
 
 	}
 }

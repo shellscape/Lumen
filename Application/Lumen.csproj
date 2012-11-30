@@ -79,13 +79,17 @@
     <Compile Include="ExtensionScriptManager.cs" />
     <Compile Include="HotkeyHandler.cs" />
     <Compile Include="IEnumerableExtensions.cs" />
+    <Compile Include="LumenCommand.cs" />
+    <Compile Include="LumenCommandDistance.cs" />
     <Compile Include="LumenScript.cs" />
+    <Compile Include="ResultBlock.cs" />
     <Compile Include="Search\ExtensionResult.cs" />
     <Compile Include="Search\WindowsSearchProvider.cs" />
     <Compile Include="FlowDocumentExtensions.cs" />
     <Compile Include="Search\WindowsSearch.cs" />
     <Compile Include="Search\WindowsSearchResult.cs" />
     <Compile Include="StaticExtensions.cs" />
+    <Compile Include="Styles.cs" />
     <Compile Include="Windows\Main.xaml.cs">
       <DependentUpon>Main.xaml</DependentUpon>
       <SubType>Code</SubType>
