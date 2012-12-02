@@ -5,6 +5,8 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 
+using Lumen.Extensions;
+
 namespace Lumen {
 
 	/// <summary>
@@ -36,7 +38,7 @@ namespace Lumen {
 
 
 			String exePath = Directory.GetParent(System.Reflection.Assembly.GetExecutingAssembly().Location).FullName;
-			String extensionsPath = System.IO.Path.Combine(exePath, "Extensions");
+			String extensionsPath = System.IO.Path.Combine(exePath, "Core Extensions");
 			String calcPath = System.IO.Path.Combine(extensionsPath, "Calculator");
 
 			var extension = new Extension(calcPath);

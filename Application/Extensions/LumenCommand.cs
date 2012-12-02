@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lumen {
+namespace Lumen.Extensions {
 	public class LumenCommand {
 
 		public LumenCommand() {

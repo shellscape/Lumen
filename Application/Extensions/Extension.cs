@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Lumen.Scripting;
 using Lumen.Search;
 
-namespace Lumen {
+namespace Lumen.Extensions {
 	public class Extension : IDisposable {
 
 		private const String _extensionIdent = "__extension";
@@ -100,7 +100,7 @@ namespace Lumen {
 						String text = hash.TryGetValue("text").Convert<String>();
 						String command = hash.TryGetValue("command").Convert<String>();
 
-						results.Add(new ExtensionResult() { Text = text, Command = command, ExtensionName = this.Name });
+						results.Add(new ExtensionResult() { Extension = this, Text = text, Command = command });
 
 				}
 			}

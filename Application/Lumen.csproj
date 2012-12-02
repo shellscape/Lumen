@@ -13,6 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -25,7 +26,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -73,17 +73,21 @@
       <SubType>Designer</SubType>
     </Page>
     <Compile Include="App.cs" />
-    <Compile Include="Extension.cs" />
-    <Compile Include="ExtensionManager.cs" />
-    <Compile Include="ExtensionScript.cs" />
-    <Compile Include="ExtensionScriptManager.cs" />
+    <Compile Include="Controls\CommandBlock.cs" />
+    <Compile Include="Controls\BaseBlock.cs" />
+    <Compile Include="Controls\ExtensionSearchBlock.cs" />
+    <Compile Include="Extensions\Extension.cs" />
+    <Compile Include="Extensions\ExtensionManager.cs" />
+    <Compile Include="Extensions\ExtensionScript.cs" />
+    <Compile Include="Extensions\ExtensionScriptManager.cs" />
     <Compile Include="HotkeyHandler.cs" />
-    <Compile Include="IEnumerableExtensions.cs" />
-    <Compile Include="LumenCommand.cs" />
-    <Compile Include="LumenCommandDistance.cs" />
+    <Compile Include="Extensions\LumenCommand.cs" />
+    <Compile Include="Extensions\LumenCommandDistance.cs" />
     <Compile Include="LumenScript.cs" />
-    <Compile Include="ResultBlock.cs" />
-    <Compile Include="Search\ExtensionResult.cs" />
+    <Compile Include="Controls\WindowsSearchBlock.cs" />
+    <Compile Include="RowType.cs" />
+    <Compile Include="Extensions\ExtensionResult.cs" />
+    <Compile Include="Search\WindowsSearchKind.cs" />
     <Compile Include="Search\WindowsSearchProvider.cs" />
     <Compile Include="FlowDocumentExtensions.cs" />
     <Compile Include="Search\WindowsSearch.cs" />
@@ -153,16 +157,20 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Extensions\Calculator\extension.js">
+    <Content Include="..\Scripts\Core Extensions\Calculator\extension.js">
+      <Link>Core Extensions\Calculator\extension.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Extensions\Calculator\lib\jquery-1.8.2.min.js">
+    <Content Include="..\Scripts\Core Extensions\Calculator\lib\jquery-1.8.2.min.js">
+      <Link>Core Extensions\Calculator\lib\jquery-1.8.2.min.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Extensions\Calculator\lib\underscore-1.4.2.js">
+    <Content Include="..\Scripts\Core Extensions\Calculator\lib\underscore-1.4.2.js">
+      <Link>Core Extensions\Calculator\lib\underscore-1.4.2.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Extensions\common.js">
+    <Content Include="..\Scripts\Core Extensions\common.js">
+      <Link>Core Extensions\common.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

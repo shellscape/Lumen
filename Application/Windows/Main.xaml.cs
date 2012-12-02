@@ -17,6 +17,8 @@ using System.Windows.Shapes;
 
 using Lumen.Search;
 using Lumen.Scripting;
+using Lumen.Controls;
+using Lumen.Extensions;
 
 namespace Lumen.Windows {
 	/// <summary>
@@ -25,25 +27,24 @@ namespace Lumen.Windows {
 	public partial class Main : Window {
 
 		private HotKeyHandeler _hotkeys;
-		private List<LumenCommand> _commands = new List<LumenCommand>();
+		private List<LumenCommand> _registeredCommands = new List<LumenCommand>();
+		private new List<Search.WindowsSearchKind> _searchKinds = new List<Search.WindowsSearchKind>();
 		private String _buffer = String.Empty;
 		private bool _ignoreChange = false;
 
 		private Search.WindowsSearch _windowsSearch = new Search.WindowsSearch();
-		private List<ExtensionResult> _extensionResults = new List<ExtensionResult>();
 
-		private int _cursorPosition = 0;
+		private int _selectedIndex = 0;
+		private int _virtualListCount = 0;
 		private int _initialWidth = 0;
 		private int _initialHeight = 0;
 		private int _resultHeight = 0;
 
-		private Style _resultStyle = null;
-		private Style _resultPartStyle = null;
-		private Style _resultKindStyle = null;
+		private object _lock = new object();
 
 		public Main() {
 			InitializeComponent();
-			
+
 			this.WindowStartupLocation = WindowStartupLocation.Manual;
 			this.Top = this.Left = 0;
 
@@ -52,7 +53,7 @@ namespace Lumen.Windows {
 
 			this.Loaded += delegate(object sender, RoutedEventArgs e) {
 				this.Visibility = Visibility.Hidden;
-		
+
 				_hotkeys = new HotKeyHandeler(this);
 				_hotkeys.RegisterHotKey(AccessModifierKeys.Win | AccessModifierKeys.Alt, Key.Space);
 				_hotkeys.HotKeyPressed += _hotkeys_HotKeyPressed;
@@ -68,19 +69,10 @@ namespace Lumen.Windows {
 			_TextCommand.TextChanged += _TextCommand_TextChanged;
 			_BorderMain.SizeChanged += _Canvas_SizeChanged;
 
-			//_commands.AddRange(new LumenCommand[]{
-			//	new LumenCommand(){ Command = "open", ParameterHint = "target" },
-			//	new LumenCommand(){ Command = "open run", ParameterHint = "" },
-			//	new LumenCommand(){ Command = "open google", ParameterHint = "" },
-			//	new LumenCommand(){ Command = "open git", ParameterHint = "" },
-			//	new LumenCommand(){ Command = "github", ParameterHint = "" },
-			//	new LumenCommand(){ Command = "github issues", ParameterHint = "" }
-			//});
-
 			ExtensionManager.Current.ForEach((e) => {
 				var commands = e.GetCommands();
 				commands.ForEach((c) => {
-					_commands.Add(new LumenCommand() { Command = c, ParameterHint = "" });
+					_registeredCommands.Add(new LumenCommand() { Command = c, ParameterHint = "" });
 				});
 			});
 
@@ -89,6 +81,7 @@ namespace Lumen.Windows {
 			}
 
 			Styles.Init(this);
+			PrepareCategories();
 		}
 
 		protected override void OnLostFocus(RoutedEventArgs e) {
@@ -105,18 +98,19 @@ namespace Lumen.Windows {
 				// TODO: execute the command
 			}
 			else if (e.Key == Key.Down || e.Key == Key.Up) {
-				
-				if (e.Key == Key.Down) {
 
+				if (e.Key == Key.Down) {
+					_selectedIndex = Math.Max(_selectedIndex + 1, _virtualListCount - 1);
 				}
 				else if (e.Key == Key.Up) {
-
+					_selectedIndex = Math.Min(_selectedIndex - 1, 0);
 				}
 			}
 		}
 
 		private void _hotkeys_HotKeyPressed(object sender, HotKeyEventArgs e) {
 			this.Visibility = System.Windows.Visibility.Visible;
+			_TextCommand.Focus();
 		}
 
 		private void _Canvas_SizeChanged(object sender, SizeChangedEventArgs e) {
@@ -134,15 +128,16 @@ namespace Lumen.Windows {
 			}
 
 			ResizeCommand();
-			ProcessSearch();
 			ProcessCommand();
+			ProcessSearch();
 		}
 
 		private void WindowsSearch_ResultsChanged(object sender, EventArgs e) {
 
 			Action method = delegate() {
 				_Progress.Visibility = System.Windows.Visibility.Hidden;
-				DisplaySearchResults();
+				RenderSearchResults();
+				CountLists();
 			};
 
 			if (this.Dispatcher.Thread == System.Threading.Thread.CurrentThread) {
@@ -151,6 +146,44 @@ namespace Lumen.Windows {
 			else {
 				this.Dispatcher.BeginInvoke(method, null);
 			}
+		}
+
+		private void CountLists() {
+			lock (_lock) {
+				//_virtualListCount = _windowsSearch.Results.Count + _extensionResults.Count + _commandResults.Count;
+				//Console.WriteLine(_virtualListCount);
+			}
+		}
+
+		private void PrepareCategories() {
+
+			// setup the display order of the _searchKinds
+			_searchKinds = new List<WindowsSearchKind>{
+				WindowsSearchKind.program,
+				WindowsSearchKind.document,
+				WindowsSearchKind.folder,
+				WindowsSearchKind.picture,
+				WindowsSearchKind.link,
+				WindowsSearchKind.music,
+				WindowsSearchKind.movie,
+				WindowsSearchKind.video,
+				WindowsSearchKind.email,
+				WindowsSearchKind.file,
+
+				// misc stuff that hardly ever makes the results
+				WindowsSearchKind.contact,
+				WindowsSearchKind.calendar,
+				WindowsSearchKind.communication,
+				WindowsSearchKind.feed,
+				WindowsSearchKind.game,
+				WindowsSearchKind.instantmessage,
+				WindowsSearchKind.journal,
+				WindowsSearchKind.note,
+				WindowsSearchKind.recordedtv,
+				WindowsSearchKind.searchfolder,
+				WindowsSearchKind.task,
+				WindowsSearchKind.webhistory
+			};
 		}
 
 		private void ResizeCommand() {
@@ -163,95 +196,53 @@ namespace Lumen.Windows {
 
 		private void ProcessSearch() {
 
-			_GridResults.Children.Clear();
-			_GridResults.RowDefinitions.Clear();
-
-			_GridSearchResults.Children.Clear();
-			_GridSearchResults.RowDefinitions.Clear();
+			_GridExtensionResults.ClearRows();
+			_GridResults.ClearRows();
 
 			if (_buffer.Length > 2) {
 				_Progress.Visibility = System.Windows.Visibility.Visible;
 
-				_extensionResults.Clear();
+				List<ExtensionResult> results = new List<ExtensionResult>();
 
 				ExtensionManager.Current.ForEach((e) => {
 					var extResults = e.GetResults(_buffer);
 					if (extResults != null) {
-						_extensionResults.AddRange(extResults);
+						results.AddRange(extResults);
 					}
 				});
 
-				DisplayExtensionResults();
+				_GridExtensionResults.Children.Clear();
+				_GridExtensionResults.RowDefinitions.Clear();
+
+				String previous = String.Empty;
+
+				foreach (var result in results) {
+					var block = new ExtensionSearchBlock(result, _buffer.ToString()) { Width = _BorderMain.Width, ShowCategory = previous != result.Extension.Name };
+
+					_GridExtensionResults.AddRow(block);
+
+					previous = result.Extension.Name;
+				}
 
 				_windowsSearch.Search(_buffer);
 			}
 		}
 
-		// TODO: this is dumb. i should arrange the enum how I want it, but its quick and dirty for now.
-		private List<Search.WindowsSearchKind> PrepareCategories() {
-			var categories = new List<Search.WindowsSearchKind>();
+		private void RenderSearchResults() {
 
-			// setup the display order of the categories
-			categories.Add(WindowsSearchKind.program);
-			categories.Add(WindowsSearchKind.document);
-			categories.Add(WindowsSearchKind.folder);
-			categories.Add(WindowsSearchKind.picture);
-			categories.Add(WindowsSearchKind.link);
-			categories.Add(WindowsSearchKind.music);
-			categories.Add(WindowsSearchKind.movie);
-			categories.Add(WindowsSearchKind.video);
-			categories.Add(WindowsSearchKind.email);
-			categories.Add(WindowsSearchKind.file);
-
-			// misc stuff that hardly ever makes the results
-			categories.Add(WindowsSearchKind.contact);
-			categories.Add(WindowsSearchKind.calendar);
-			categories.Add(WindowsSearchKind.communication);
-			categories.Add(WindowsSearchKind.feed);
-			categories.Add(WindowsSearchKind.game);
-			categories.Add(WindowsSearchKind.instantmessage);
-			categories.Add(WindowsSearchKind.journal);
-			categories.Add(WindowsSearchKind.note);
-			categories.Add(WindowsSearchKind.recordedtv);
-			categories.Add(WindowsSearchKind.searchfolder);
-			categories.Add(WindowsSearchKind.task);
-			categories.Add(WindowsSearchKind.webhistory);
-
-			return categories;
-		}
-
-		private void DisplayExtensionResults() {
-
-			_GridResults.Children.Clear();
-			_GridResults.RowDefinitions.Clear();
-
-			String previous = String.Empty;
-
-			foreach (var result in _extensionResults) {
-				RenderResult(result.Text, result.ExtensionName, previous != result.ExtensionName, _GridResults);
-				previous = result.ExtensionName;
-			}
-
-		}
-
-		private void DisplaySearchResults() {
-
-			_GridSearchResults.Children.Clear();
-			_GridSearchResults.RowDefinitions.Clear();
-
-			var categories = PrepareCategories();
+			_GridResults.ClearRows();
 
 			// take the top three in each category (this is how spotlight does it)
-			foreach (var resultKind in categories) {
+			foreach (var resultKind in _searchKinds) {
 
 				bool showCategory = true;
 
-				var test = from result in _windowsSearch.Results
+				var subset = from result in _windowsSearch.Results
 									 where (result.Kind & resultKind) == resultKind && result.Touched == false
 									 orderby result.Rank descending
 									 select result;
 
-				foreach (var result in test.Take(3)) {
+				foreach (var result in subset.Take(3)) {
 
 					var fileName = result.FileName;
 					var buffer = _buffer.ToString();
@@ -264,7 +255,9 @@ namespace Lumen.Windows {
 						continue;
 					}
 
-					RenderResult(fileName, resultKind.ToString() + "s", showCategory, _GridSearchResults);
+					var block = new WindowsSearchBlock(result, _buffer.ToString()) { Width = _BorderMain.Width, ShowCategory = showCategory };
+
+					_GridResults.AddRow(block);
 
 					if (showCategory) {
 						showCategory = false;
@@ -272,99 +265,7 @@ namespace Lumen.Windows {
 				}
 
 				showCategory = true;
-
 			}
-		}
-	
-		private void DisplayCommands(List<LumenCommand> commands) {
-
-			_GridCommands.Children.Clear();
-			_GridCommands.RowDefinitions.Clear();
-
-			foreach (var command in commands) {
-				var buffer = _buffer.ToString();
-				var commandText = command.Command;
-				var textBlock = new TextBlock() { Style = (Style)FindResource("Command") };
-
-				int pos = commandText.IndexOf(buffer);
-				if (pos < 0) {
-					continue;
-				}
-
-				var start = commandText.Substring(0, pos);
-				var end = commandText.Substring(pos + buffer.Length);
-				var part = new TextBlock() {
-					Style = (Style)FindResource("CommandPart"),
-					Text = buffer,
-					FontWeight = FontWeights.Normal
-				};
-
-				textBlock.Inlines.Add(start);
-				textBlock.Inlines.Add(part);
-				textBlock.Inlines.Add(end);
-
-				_GridCommands.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
-				Grid.SetRow(textBlock, _GridCommands.Children.Count);
-
-				_GridCommands.Children.Add(textBlock);
-			}
-		}
-
-		private void RenderResult(String text, String category, Boolean showCategory, Grid grid) {
-
-			//var buffer = _buffer.ToString();
-			//var textBlock = new TextBlock() { Style = _resultStyle };
-
-			//if (!showCategory) {
-			//	category = String.Empty;
-			//}
-
-			//var kind = new TextBlock() {
-			//	Style = _resultKindStyle,
-			//	Text = category,
-			//	FontWeight = FontWeights.Normal
-			//};
-
-			//textBlock.Inlines.Add(kind);
-
-			//int pos = text.IndexOf(buffer, StringComparison.CurrentCultureIgnoreCase);
-			//if (pos >= 0) {
-
-			//	var start = text.Substring(0, pos);
-			//	var end = text.Substring(pos + buffer.Length);
-			//	var highlighted = text;
-
-			//	if (!String.IsNullOrEmpty(end)) {
-			//		highlighted = highlighted.Replace(end, string.Empty);
-			//	}
-
-			//	if (!String.IsNullOrEmpty(start)) {
-			//		highlighted = highlighted.Replace(start, string.Empty);
-			//	}
-
-			//	var part = new TextBlock() {
-			//		Style = _resultPartStyle,
-			//		Text = highlighted,
-			//		FontWeight = FontWeights.Normal
-			//	};
-
-			//	textBlock.Inlines.Add(start);
-			//	textBlock.Inlines.Add(part);
-			//	textBlock.Inlines.Add(end);
-			//}
-			//else {
-			//	textBlock.Inlines.Add(text);
-			//}
-
-			var block = new ResultBlock(text, _buffer.ToString(), category) { Width = _BorderMain.Width, ShowCategory = showCategory };
-
-			//textBlock.Width = _BorderMain.Width;
-
-			Grid.SetRow(block, grid.Children.Count);
-
-			grid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
-			grid.Children.Add(block);
-
 		}
 
 		private void ProcessCommand() {
@@ -373,7 +274,7 @@ namespace Lumen.Windows {
 
 			if (_buffer.Length > 0) {
 
-				foreach (var command in _commands) {
+				foreach (var command in _registeredCommands) {
 					if (!command.Command.Contains(_buffer)) {
 						continue;
 					}
@@ -388,7 +289,15 @@ namespace Lumen.Windows {
 			}
 
 			FormatPrompt(topCommand);
-			DisplayCommands(distances.Select(o => o.Command).Take(10).ToList());
+
+			List<LumenCommand> commands = distances.Select(o => o.Command).Take(10).ToList();
+
+			_GridCommands.ClearRows();
+
+			foreach (var command in commands) {
+				var block = new CommandBlock(command, _buffer.ToString()) { Width = _BorderMain.Width };
+				_GridCommands.AddRow(block);
+			}
 		}
 
 		private void FormatPrompt(LumenCommand command) {

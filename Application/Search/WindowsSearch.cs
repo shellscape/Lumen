@@ -14,7 +14,7 @@ namespace Lumen.Search {
 		private String _last = String.Empty;
 
 		private List<String> _terms = new List<String>();
-		private List<WindowsSearchResult> _results;
+		private List<WindowsSearchResult> _results = new List<WindowsSearchResult>();
 
 		private Thread _worker;
 		private AutoResetEvent _flag = new AutoResetEvent(false);

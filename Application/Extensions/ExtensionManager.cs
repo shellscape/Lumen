@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lumen {
+namespace Lumen.Extensions {
 	public class ExtensionManager : List<Extension> {
 
 		private static ExtensionManager _current = new ExtensionManager();

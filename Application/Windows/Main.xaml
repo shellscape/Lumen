@@ -282,10 +282,10 @@
 				<Grid Name="_GridCommands" Grid.Row="1">
 
 				</Grid>
-				<Grid Name="_GridResults" Grid.Row="2">
+				<Grid Name="_GridExtensionResults" Grid.Row="2">
 
 				</Grid>
-				<Grid Name="_GridSearchResults" Grid.Row="3">
+				<Grid Name="_GridResults" Grid.Row="3">
 
 				</Grid>
 			</Grid>
