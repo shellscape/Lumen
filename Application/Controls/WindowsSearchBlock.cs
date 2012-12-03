@@ -15,6 +15,7 @@ namespace Lumen.Controls {
 
 		public WindowsSearchBlock(Search.WindowsSearchResult searchResult, String highlight) : base(searchResult.FileName, highlight, RowType.WindowsSearch){
 			this._category = searchResult.Kind.ToString();
+			Console.WriteLine(_category);
 			if (this._part != null) {
 				this._part.Style = Styles.ResultHighlight;
 			}
@@ -31,6 +32,26 @@ namespace Lumen.Controls {
 			});
 
 			base.Render();
+		}
+
+		protected override void OnSelectedChanged() {
+			Console.WriteLine("Selected - " + Selected);
+			if (this.Selected) {
+				//this.SetResourceReference(TextBlock.StyleProperty, "SelectedCommand");
+				//this.Style = FindResource("SelectedCommand") as Style;
+				this.Style = Styles.SelectedResult;
+				//if (_part != null) {
+				//	this._part.Style = this.Style = Styles.SelectedResultHighlight;
+				//}
+			}
+			else {
+			//	if (this._part != null) {
+			//		this._part.Style = Styles.ResultHighlight;
+			//	}
+				this.Style = Styles.Result;
+				//this.Style = FindResource("Result") as Style;
+			}
+
 		}
 
 		public Search.WindowsSearchResult SearchResult { get; private set; }

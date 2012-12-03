@@ -33,6 +33,11 @@ namespace Lumen.Controls {
 			base.Render();
 		}
 
+		protected override void OnSelectedChanged() {
+			this.Style = Styles.SelectedResult;
+			this._part.Style = this.Style = Styles.SelectedResultHighlight;
+		}
+
 		public Extensions.ExtensionResult ExtensionResult { get; private set; }
 
 		public Boolean ShowCategory {

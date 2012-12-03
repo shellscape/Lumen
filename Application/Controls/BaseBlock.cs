@@ -13,6 +13,7 @@ namespace Lumen.Controls {
 		protected TextBlock _part = null;
 		protected String _text = null;
 		protected String _highlight = null;
+		private Boolean _selected = false;
 
 		public BaseBlock(String text, String highlight, RowType type) : base() {
 			this.Type = type;
@@ -42,7 +43,6 @@ namespace Lumen.Controls {
 
 				this.Inlines.Add(start);
 				this.Inlines.Add(_part = new TextBlock() {
-					Style = Styles.CommandHighlight,
 					Text = highlighted,
 					FontWeight = FontWeights.Normal
 				});
@@ -50,6 +50,21 @@ namespace Lumen.Controls {
 			}
 			else {
 				this.Inlines.Add(_text);
+			}
+		}
+
+		protected virtual void OnSelectedChanged() {
+			// set the selected styles
+		}
+
+		public Boolean Selected {
+			get { return _selected; }
+			set {
+				Boolean trigger = _selected != value;
+				_selected = value;
+				if(trigger){
+					OnSelectedChanged();
+				}
 			}
 		}
 

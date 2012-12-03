@@ -119,14 +119,16 @@ namespace Lumen {
 
 		public void UnegisterHotKey() {
 			HwndSource src = HwndSource.FromHwnd(Handle);
-			src.RemoveHook(new HwndSourceHook(this.WndProc));
-
+			if (src != null) {
+				src.RemoveHook(new HwndSourceHook(this.WndProc));
+			}
 			foreach (short id in keyIDs.Values) {
 				UnregisterHotKey(Handle, id);
 				GlobalDeleteAtom(id);
 			}
+
 		}
 
 	}
- 
+
 }

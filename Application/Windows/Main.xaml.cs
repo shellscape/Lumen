@@ -28,14 +28,14 @@ namespace Lumen.Windows {
 
 		private HotKeyHandeler _hotkeys;
 		private List<LumenCommand> _registeredCommands = new List<LumenCommand>();
-		private new List<Search.WindowsSearchKind> _searchKinds = new List<Search.WindowsSearchKind>();
+		private List<Search.WindowsSearchKind> _searchKinds = new List<Search.WindowsSearchKind>();
+		private List<BaseBlock> _virtualBlocks = new List<BaseBlock>();
 		private String _buffer = String.Empty;
 		private bool _ignoreChange = false;
 
 		private Search.WindowsSearch _windowsSearch = new Search.WindowsSearch();
 
-		private int _selectedIndex = 0;
-		private int _virtualListCount = 0;
+		private int _selectedIndex = -1;
 		private int _initialWidth = 0;
 		private int _initialHeight = 0;
 		private int _resultHeight = 0;
@@ -47,6 +47,8 @@ namespace Lumen.Windows {
 
 			this.WindowStartupLocation = WindowStartupLocation.Manual;
 			this.Top = this.Left = 0;
+			this.Focusable = true;
+			this.ShowInTaskbar = false;
 
 			var style = (Style)FindResource("CommandInput");
 			var block = new RichTextBox() { Style = style };
@@ -84,13 +86,14 @@ namespace Lumen.Windows {
 			PrepareCategories();
 		}
 
-		protected override void OnLostFocus(RoutedEventArgs e) {
-			base.OnLostFocus(e);
+		protected override void OnDeactivated(EventArgs e) {
+			base.OnDeactivated(e);
 			this.Visibility = Visibility.Hidden;
 		}
 
-		protected override void OnKeyUp(KeyEventArgs e) {
-			base.OnKeyUp(e);
+		protected override void OnPreviewKeyDown(KeyEventArgs e) {
+			base.OnPreviewKeyDown(e);
+
 			if (e.Key == Key.Escape) {
 				this.Visibility = Visibility.Hidden;
 			}
@@ -100,16 +103,30 @@ namespace Lumen.Windows {
 			else if (e.Key == Key.Down || e.Key == Key.Up) {
 
 				if (e.Key == Key.Down) {
-					_selectedIndex = Math.Max(_selectedIndex + 1, _virtualListCount - 1);
+					_selectedIndex = Math.Min(_selectedIndex + 1, _virtualBlocks.Count - 1);
 				}
 				else if (e.Key == Key.Up) {
-					_selectedIndex = Math.Min(_selectedIndex - 1, 0);
+					_selectedIndex = Math.Max(_selectedIndex - 1, 0);
+				}
+
+				if (_virtualBlocks.Count == 0) {
+					_selectedIndex = -1;
+				}
+				else {
+
+					var selected = _virtualBlocks.Where(b => b.Selected == true).FirstOrDefault();
+
+					if (selected != null) {
+						selected.Selected = false;
+					}
+					_virtualBlocks[_selectedIndex].Selected = true;
 				}
 			}
 		}
 
 		private void _hotkeys_HotKeyPressed(object sender, HotKeyEventArgs e) {
 			this.Visibility = System.Windows.Visibility.Visible;
+			this.Activate();
 			_TextCommand.Focus();
 		}
 
@@ -137,7 +154,6 @@ namespace Lumen.Windows {
 			Action method = delegate() {
 				_Progress.Visibility = System.Windows.Visibility.Hidden;
 				RenderSearchResults();
-				CountLists();
 			};
 
 			if (this.Dispatcher.Thread == System.Threading.Thread.CurrentThread) {
@@ -148,11 +164,21 @@ namespace Lumen.Windows {
 			}
 		}
 
-		private void CountLists() {
-			lock (_lock) {
-				//_virtualListCount = _windowsSearch.Results.Count + _extensionResults.Count + _commandResults.Count;
-				//Console.WriteLine(_virtualListCount);
+		private void UpdateVirtualRows<T>(Grid grid) where T : BaseBlock {
+			_virtualBlocks.RemoveAll(v => v.GetType() == typeof(T));
+			_virtualBlocks.AddRange(grid.Children.OfType<T>());
+
+			if (_selectedIndex > _virtualBlocks.Count) {
+				_selectedIndex = -1;
 			}
+
+			//var selected = _virtualBlocks.Where(b => b.Selected == true).FirstOrDefault();
+
+			//if (selected != null) {
+			//	selected.Selected = false;
+			//}
+
+			//_virtualBlocks[_selectedIndex].Selected = true;
 		}
 
 		private void PrepareCategories() {
@@ -220,6 +246,7 @@ namespace Lumen.Windows {
 					var block = new ExtensionSearchBlock(result, _buffer.ToString()) { Width = _BorderMain.Width, ShowCategory = previous != result.Extension.Name };
 
 					_GridExtensionResults.AddRow(block);
+					UpdateVirtualRows<ExtensionSearchBlock>(_GridExtensionResults);
 
 					previous = result.Extension.Name;
 				}
@@ -238,9 +265,9 @@ namespace Lumen.Windows {
 				bool showCategory = true;
 
 				var subset = from result in _windowsSearch.Results
-									 where (result.Kind & resultKind) == resultKind && result.Touched == false
-									 orderby result.Rank descending
-									 select result;
+										 where (result.Kind & resultKind) == resultKind && result.Touched == false
+										 orderby result.Rank descending
+										 select result;
 
 				foreach (var result in subset.Take(3)) {
 
@@ -248,6 +275,7 @@ namespace Lumen.Windows {
 					var buffer = _buffer.ToString();
 
 					result.Touched = true;
+					result.Kind = resultKind;
 
 					// window search: if the search term doesn't appear in the filename, skip it.
 					int pos = fileName.IndexOf(buffer, StringComparison.CurrentCultureIgnoreCase);
@@ -258,6 +286,7 @@ namespace Lumen.Windows {
 					var block = new WindowsSearchBlock(result, _buffer.ToString()) { Width = _BorderMain.Width, ShowCategory = showCategory };
 
 					_GridResults.AddRow(block);
+					UpdateVirtualRows<WindowsSearchBlock>(_GridResults);
 
 					if (showCategory) {
 						showCategory = false;
@@ -297,6 +326,7 @@ namespace Lumen.Windows {
 			foreach (var command in commands) {
 				var block = new CommandBlock(command, _buffer.ToString()) { Width = _BorderMain.Width };
 				_GridCommands.AddRow(block);
+				UpdateVirtualRows<CommandBlock>(_GridCommands);
 			}
 		}
 

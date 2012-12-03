@@ -10,11 +10,11 @@
   Topmost="True">
 
 	<Window.Resources>
-		<SolidColorBrush x:Key="WindowBackground" Color="#80990099" Opacity="0.5"/>
+		<SolidColorBrush x:Key="WindowBackground" Color="#80050505" Opacity="0.5"/>
 
 
 		<Style x:Key="Header" TargetType="{x:Type Border}">
-			<Setter Property="Background" Value="#b2990099" />
+			<Setter Property="Background" Value="#b20AB5FE" />
 			<Setter Property="Padding" Value="12,0,0,0" />
 			<Setter Property="Width" Value="660" />
 			<Setter Property="Height" Value="41" />
@@ -29,7 +29,7 @@
 
 
 		<Style x:Key="Content" TargetType="{x:Type Border}">
-			<Setter Property="Background" Value="#e60D000D"/>
+			<Setter Property="Background" Value="#e6030303"/>
 			<Setter Property="Width" Value="660"/>
 			<Setter Property="Margin" Value="0,41,0,0"/>
 			<Setter Property="Padding" Value="0,0,0,10"/>
@@ -63,7 +63,7 @@
 		<Style x:Key="CommandComplete" TargetType="{x:Type TextBlock}">
 			<Setter Property="FontFamily" Value="Segoe UI" />
 			<Setter Property="FontSize" Value="40" />
-			<Setter Property="Foreground" Value="#99CA0087" />
+			<Setter Property="Foreground" Value="#990789BA" />
 			<Setter Property="Padding" Value="6,1,0,0" />
 			<Setter Property="Height" Value="60"/>
 			<Setter Property="Margin" Value="0,-10,0,0"/>
@@ -81,16 +81,27 @@
 			<Setter Property="VerticalAlignment" Value="Center" />
 			<Setter Property="FontFamily" Value="Segoe UI" />
 			<Setter Property="FontSize" Value="20" />
-			<Setter Property="Foreground" Value="#99CA0087" />
+			<Setter Property="Foreground" Value="#9900A5CB" />
 			<Setter Property="Padding" Value="12, 1, 20, 0" />
 			<Setter Property="Height" Value="30" />
+			<Setter Property="Background" Value="#01667E"/>
 		</Style>
 		<Style x:Key="CommandPart" TargetType="{x:Type TextBlock}">
 			<Setter Property="HorizontalAlignment" Value="Left" />
 			<Setter Property="VerticalAlignment" Value="Center" />
 			<Setter Property="FontSize" Value="20" />
-			<Setter Property="Foreground" Value="#CA0088" />
+			<Setter Property="Foreground" Value="#8EE4FF" />
 		</Style>
+		<Style x:Key="SelectedCommand" TargetType="{x:Type TextBlock}">
+			<Setter Property="HorizontalAlignment" Value="Left" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="FontFamily" Value="Segoe UI" />
+			<Setter Property="FontSize" Value="20" />
+			<Setter Property="Foreground" Value="#ccc" />
+			<Setter Property="Padding" Value="12, 1, 20, 0" />
+			<Setter Property="Height" Value="30" />
+			<Setter Property="Background" Value="#01667E"/>
+		</Style>		
 		
 		<Style x:Key="Result" TargetType="{x:Type TextBlock}">
 			<Setter Property="HorizontalAlignment" Value="Left" />
@@ -116,9 +127,21 @@
 			<Setter Property="FontSize" Value="20" />
 			<Setter Property="Foreground" Value="#999" />
 			<Setter Property="Padding" Value="0,0,18,0" />
-			<Setter Property="Width" Value="134" />
-		</Style>		
-		
+			<Setter Property="Width" Value="150" />
+		</Style>
+
+		<Style x:Key="SelectedResult" TargetType="{x:Type TextBlock}">
+			<Setter Property="HorizontalAlignment" Value="Left" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="FontFamily" Value="Segoe UI" />
+			<Setter Property="FontSize" Value="20" />
+			<Setter Property="Foreground" Value="#ccc" />
+			<Setter Property="Padding" Value="12, 1, 20, 0" />
+			<Setter Property="Height" Value="30" />
+			<Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+			<Setter Property="Background" Value="#01667E"/>
+		</Style>
+
 		<Style x:Key="{x:Type ProgressBar}" TargetType="{x:Type ProgressBar}">
 			<Setter Property="MinHeight" Value="8" />
 			<Setter Property="Foreground" Value="#fff" />
@@ -256,7 +279,7 @@
 	<Canvas Name="_Canvas">
 		<Border Style="{DynamicResource Header}" Name="_BorderHeader">
 			<TextBlock Style="{DynamicResource HeaderText}">
-				Welcome to Lumen! Enter a command, or type ‘help’ for assistance.
+				Lumen
 			</TextBlock>
 		</Border>
 
